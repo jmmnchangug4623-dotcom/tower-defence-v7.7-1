@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Tower Defense v7.7 (모바일 최적화)</title>
+  <style>
+    body { margin:0; font-family:Arial,sans-serif; text-align:center; background:#eee; }
+    #gameCanvas { border:2px solid #333; display:block; margin:0 auto; background:#fff; touch-action:none; }
+    #ui { margin-top:10px; }
+    .btn { font-size:20px; padding:10px 20px; margin:5px; border-radius:10px; border:none; background:#4CAF50; color:white; }
+    .btn:hover { background:#45a049; }
+    #towerBar { position:fixed; bottom:0; left:0; right:0; background:#222; display:flex; justify-content:space-around; padding:10px; }
+    .towerIcon { width:60px; height:60px; border-radius:10px; border:2px solid #fff; background:#666; color:white; font-size:14px; display:flex; align-items:center; justify-content:center; user-select:none; }
+    .towerIcon.selected { background:#ff9800; }
+  </style>
+</head>
+<body>
+  <h2>타워 디펜스 v7.7 (모바일 최적화)</h2>
+  <canvas id="gameCanvas" width="480" height="640"></canvas>
+  <div id="ui">
+    <button id="startBtn" class="btn">▶ 시작</button>
+    <button id="pauseBtn" class="btn">⏸ 멈춤</button>
+    <button id="resetBtn" class="btn">🔄 리셋</button>
+    <p id="info">라이프 ❤️: 20 | 돈 💰: 100 | 웨이브 🌊: 1</p>
+  </div>
+  <div id="towerBar">
+    <div class="towerIcon" data-type="basic">기본</div>
+    <div class="towerIcon" data-type="range">범위</div>
+    <div class="towerIcon" data-type="slow">슬로우</div>
+    <div class="towerIcon" data-type="multi">연발</div>
+    <div class="towerIcon" data-type="explosive">폭발</div>
+    <div class="towerIcon" data-type="money">돈</div>
+    <div class="towerIcon" data-type="flame">화염</div>
+    <div class="towerIcon" data-type="poison">독</div>
+  </div>
+  <audio id="shootSound" src="shoot.mp3"></audio>
+  <audio id="killSound" src="kill.mp3"></audio>
+  <audio id="lifeSound" src="life.mp3"></audio>
+  <script>
+    const canvas=document.getElementById("gameCanvas");
+    const ctx=canvas.getContext("2d");
+    let gameRunning=false,paused=false,lives=20,money=100,wave=1;
+    let towers=[],enemies=[],projectiles=[];
+    let selectedTowerType=null;
+    document.querySelectorAll(".towerIcon").forEach(icon=>{
+      icon.addEventListener("click",()=>{
+        document.querySelectorAll(".towerIcon").forEach(i=>i.classList.remove("selected"));
+        icon.classList.add("selected");
+        selectedTowerType=icon.dataset.type;
+      });
+    });
+    canvas.addEventListener("click",e=>{
+      if(!selectedTowerType)return;
+      const rect=canvas.getBoundingClientRect();
+      const x=e.clientX-rect.left;
+      const y=e.clientY-rect.top;
+      towers.push({x,y,type:selectedTowerType});
+    });
+    document.getElementById("startBtn").addEventListener("click",()=>{gameRunning=true;paused=false;});
+    document.getElementById("pauseBtn").addEventListener("click",()=>{paused=!paused;});
+    document.getElementById("resetBtn").addEventListener("click",()=>{
+      gameRunning=false;paused=false;lives=20;money=100;wave=1;
+      towers=[];enemies=[];projectiles=[];selectedTowerType=null;
+      document.querySelectorAll(".towerIcon").forEach(i=>i.classList.remove("selected"));
+    });
+    function update(){ if(!gameRunning||paused)return; }
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      towers.forEach(t=>{
+        ctx.fillStyle="blue";ctx.beginPath();ctx.arc(t.x,t.y,15,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="white";ctx.fillText(t.type,t.x-15,t.y-20);
+      });
+    }
+    function loop(){update();draw();requestAnimationFrame(loop);} loop();
+  </script>
+</body>
+</html>
